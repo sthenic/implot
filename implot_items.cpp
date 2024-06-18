@@ -2805,4 +2805,17 @@ void PlotDummy(const char* label_id, ImPlotDummyFlags flags) {
         EndItem();
 }
 
+//-----------------------------------------------------------------------------
+// [SECTION] PlotCallback
+//-----------------------------------------------------------------------------
+
+void PlotCallback(const char* label_id, const ImPlotPoint& bounds_min, const ImPlotPoint& bounds_max, ImDrawCallback callback, void* callback_data) {
+    if (BeginItemEx(label_id, FitterRect(bounds_min, bounds_max), 0, ImPlotCol_Line)) {
+        ImDrawList& draw_list = *GetPlotDrawList();
+        draw_list.AddCallback(callback, callback_data);
+        draw_list.AddCallback(ImDrawCallback_ResetRenderState, nullptr);
+        EndItem();
+    }
+}
+
 } // namespace ImPlot

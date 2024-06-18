@@ -920,6 +920,9 @@ IMPLOT_API void PlotText(const char* text, double x, double y, const ImVec2& pix
 // Plots a dummy item (i.e. adds a legend entry colored by ImPlotCol_Line)
 IMPLOT_API void PlotDummy(const char* label_id, ImPlotDummyFlags flags=0);
 
+// Plots an item with a size defined by the provided bounds. The item itself is rendered via the provided callback. A legend entry is added colored with ImPlotCol_Line.
+IMPLOT_API void PlotCallback(const char* label_id, const ImPlotPoint& bounds_min, const ImPlotPoint& bounds_max, ImDrawCallback callback, void* callback_data);
+
 //-----------------------------------------------------------------------------
 // [SECTION] Plot Tools
 //-----------------------------------------------------------------------------
