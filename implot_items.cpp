@@ -705,6 +705,40 @@ struct Fitter2 {
 };
 
 template <typename _Getter1, typename _Getter2>
+struct Fitter2Y {
+    Fitter2Y(const _Getter1& getter1, const _Getter2& getter2) : Getter1(getter1), Getter2(getter2) { }
+    void Fit(ImPlotAxis&, ImPlotAxis& y_axis) const {
+        for (int i = 0; i < Getter1.Count; ++i) {
+            ImPlotPoint p = Getter1(i);
+            y_axis.ExtendFit(p.y);
+        }
+        for (int i = 0; i < Getter2.Count; ++i) {
+            ImPlotPoint p = Getter2(i);
+            y_axis.ExtendFit(p.y);
+        }
+    }
+    const _Getter1& Getter1;
+    const _Getter2& Getter2;
+};
+
+template <typename _Getter1, typename _Getter2>
+struct Fitter2X {
+    Fitter2X(const _Getter1& getter1, const _Getter2& getter2) : Getter1(getter1), Getter2(getter2) { }
+    void Fit(ImPlotAxis& x_axis, ImPlotAxis&) const {
+        for (int i = 0; i < Getter1.Count; ++i) {
+            ImPlotPoint p = Getter1(i);
+            x_axis.ExtendFit(p.x);
+        }
+        for (int i = 0; i < Getter2.Count; ++i) {
+            ImPlotPoint p = Getter2(i);
+            x_axis.ExtendFit(p.x);
+        }
+    }
+    const _Getter1& Getter1;
+    const _Getter2& Getter2;
+};
+
+template <typename _Getter1, typename _Getter2>
 struct FitterBarV {
     FitterBarV(const _Getter1& getter1, const _Getter2& getter2, double width) :
         Getter1(getter1),
@@ -2190,6 +2224,44 @@ void PlotInfLines(const char* label_id, const T* values, int count, ImPlotInfLin
     }
 }
 #define INSTANTIATE_MACRO(T) template IMPLOT_API void PlotInfLines<T>(const char* label_id, const T* xs, int count, ImPlotInfLinesFlags flags, int offset, int stride);
+CALL_INSTANTIATE_FOR_NUMERIC_TYPES()
+#undef INSTANTIATE_MACRO
+
+//-----------------------------------------------------------------------------
+// [SECTION] PlotInfShaded
+//-----------------------------------------------------------------------------
+template <typename T>
+void PlotInfShaded(const char* label_id, T value1, T value2, ImPlotInfLinesFlags flags) {
+    const ImPlotRect lims = GetPlotLimits(IMPLOT_AUTO,IMPLOT_AUTO);
+    if (ImHasFlag(flags, ImPlotInfLinesFlags_Horizontal)) {
+        const double *x = (const double *)(&lims.X);
+        GetterXY<IndexerIdx<double>,IndexerConst> getter1(IndexerIdx<double>(x,2),IndexerConst((double)value1),2);
+        GetterXY<IndexerIdx<double>,IndexerConst> getter2(IndexerIdx<double>(x,2),IndexerConst((double)value2),2);
+        if (BeginItemEx(label_id, Fitter2Y<GetterXY<IndexerIdx<double>,IndexerConst>,GetterXY<IndexerIdx<double>,IndexerConst>>(getter1,getter2), flags, ImPlotCol_Fill)) {
+            const ImPlotNextItemData& s = GetItemData();
+            if (s.RenderFill) {
+                const ImU32 col = ImGui::GetColorU32(s.Colors[ImPlotCol_Fill]);
+                RenderPrimitives2<RendererShaded>(getter1,getter2,col);
+            }
+            EndItem();
+        }
+    }
+    else {
+        const double *y = (const double *)(&lims.Y);
+        GetterXY<IndexerConst,IndexerIdx<double>> getter1(IndexerConst((double)value1),IndexerIdx<double>(y,2),2);
+        GetterXY<IndexerConst,IndexerIdx<double>> getter2(IndexerConst((double)value2),IndexerIdx<double>(y,2),2);
+        if (BeginItemEx(label_id, Fitter2X<GetterXY<IndexerConst,IndexerIdx<double>>,GetterXY<IndexerConst,IndexerIdx<double>>>(getter1,getter2), flags, ImPlotCol_Fill)) {
+            const ImPlotNextItemData& s = GetItemData();
+            if (s.RenderFill) {
+                const ImU32 col = ImGui::GetColorU32(s.Colors[ImPlotCol_Fill]);
+                RenderPrimitives2<RendererShaded>(getter1,getter2,col);
+            }
+            EndItem();
+        }
+    }
+}
+
+#define INSTANTIATE_MACRO(T) template IMPLOT_API void PlotInfShaded<T>(const char* label_id, T value1, T value2, ImPlotInfLinesFlags flags);
 CALL_INSTANTIATE_FOR_NUMERIC_TYPES()
 #undef INSTANTIATE_MACRO
 
